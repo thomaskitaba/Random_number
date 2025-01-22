@@ -1,54 +1,43 @@
 #!/usr/bin/python3
+import numpy as np
+import matplotlib.pyplot as plt
 
-import matplotlib.pyplot as plt  # Importing matplotlib for visualization
-from matplotlib import gridspec  # Importing gridspec for better layout control
-import numpy as np  # Importing numpy for numerical operations
+# Define the function f(x) = e^(-x^2)
+def f(x):
+    return np.exp(-x**2)
 
-# Initialize variables
-MAXN = 10000  # Total number of steps for the numerical integration
-n_arr = []  # List to store iteration counts for plotting
-pi_arr = []  # List to store π estimates for each iteration
-
-# Set up the plot
-fig = plt.figure(figsize=(10, 15))  # Create a figure with specified size
-gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])  # Create a grid layout for subplots (equal space)
-ax = [plt.subplot(gs[0]), plt.subplot(gs[1])]  # Define two subplots
-
-# Set limits for both axes to avoid overlap and make sure plots are visible
-ax[0].set_xlim(-0.5, 0.5)
-ax[0].set_ylim(-0.5, 0.5)
-ax[0].set_aspect('equal')  # Ensure equal aspect ratio for square visualization
-
-# Numeric Integration using Trapezoidal Rule
-# The function for the quarter circle
-def quarter_circle(x):
-    return np.sqrt(1 - x**2)
-
-# Approximate pi using the integral of quarter_circle
-# Using the trapezoidal rule to numerically integrate
-for n in range(1, MAXN + 1):
-    # Use the trapezoidal rule to estimate the integral
-    x_vals = np.linspace(0, 1, n)  # Generate n points between 0 and 1
-    y_vals = quarter_circle(x_vals)  # Evaluate the function at these points
-    integral_estimate = np.trapz(y_vals, x_vals)  # Perform trapezoidal integration
-    pi_estimate = 4 * integral_estimate  # Multiply by 4 to approximate pi
+# Monte Carlo method to estimate the integral
+def monte_carlo_integration(N):
+    # Generate N random samples uniformly distributed in [0, 1]
+    x_samples = np.random.uniform(0, 1, N)
     
-    # Store the current estimate of pi and number of iterations
-    n_arr.append(n)
-    pi_arr.append(pi_estimate)
+    # Evaluate the function at the random samples
+    function_values = f(x_samples)
+    
+    # Estimate the integral using the Monte Carlo formula
+    integral_estimate = np.mean(function_values)  # Average of the function values
+    return integral_estimate
 
-# Print final results for reference
-print(f"Iterations: {MAXN}, Estimated π: {pi_arr[-1]}")
+# Set different values for N (number of samples)
+N_values = [10**3, 10**4, 10**5, 10**6]
+integral_estimates = [monte_carlo_integration(N) for N in N_values]
 
-# Plot results on the second subplot
-ax[1].plot(n_arr, pi_arr, "b-", label="Numeric Integration Approximation")  # Plot the π estimates over iterations
-ax[1].plot(n_arr, [np.pi] * len(n_arr), "r-", label="Actual π")  # Plot the true value of π for reference
-ax[1].legend()  # Add a legend to distinguish between the two lines
-ax[1].set_xlabel("Number of Steps")  # Label the x-axis for the second subplot
-ax[1].set_ylabel("Estimated π")  # Label the y-axis for the second subplot
+# Exact value of the integral (numerical integration for comparison)
+exact_value = 0.7468241328  # This is the known result of the integral over [0, 1]
 
-# Add titles and finalize the plot
-ax[0].set_title("Numeric Integration to Approximate π (Quarter Circle Integration)")  # Title for the first subplot
-ax[1].set_title("Convergence of π Estimation Over Steps")  # Title for the second subplot
-plt.tight_layout()  # Adjust the layout to prevent overlapping elements
-plt.show()  # Display the plot
+# Plot the convergence of the integral estimate as N increases
+plt.figure(figsize=(10, 6))
+plt.plot(N_values, integral_estimates, label="Monte Carlo Estimate", marker='o')
+plt.axhline(y=exact_value, color='r', linestyle='--', label="Exact Value")
+plt.xscale('log')
+plt.yscale('linear')
+plt.xlabel("Number of Samples (N)")
+plt.ylabel("Estimated Integral Value")
+plt.title("Monte Carlo Estimation of Integral")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Print the estimates for each N
+for N, estimate in zip(N_values, integral_estimates):
+    print(f"Estimated integral with N = {N}: {estimate}")
